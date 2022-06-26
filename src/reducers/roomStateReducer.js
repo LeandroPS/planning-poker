@@ -5,7 +5,7 @@ const {
   CLEAR_VOTES,
   REVEAL_VOTES,
   HIDE_VOTES,
-} = require("./actionTypes");
+} = require("../customEventTypes");
 
 const initialRoomState = {
   showVotes: false,
