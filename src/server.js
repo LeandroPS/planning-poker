@@ -1,20 +1,16 @@
-const { setEventHandlers } = require("./events.js");
-const { Server } = require("socket.io");
+const { setSocketEventHandlers } = require("./handlers/socketEventHandler.js");
+const server = require("http").createServer();
+
+const corsAllowedOrigins = process.env.CORS_ALLOWED_ORIGIN;
+
+const io = require("socket.io")(server, {
+  cors: corsAllowedOrigins?.split(","),
+});
 
 const init = () => {
-  const server = new Server();
-
-  const serverWithHandlers = setEventHandlers(server);
+  const serverWithHandlers = setSocketEventHandlers(io);
 
   serverWithHandlers.listen(3000);
-
-  serverWithHandlers.on("connection", (socket) => {
-    console.log("novo client");
-    socket.on("planning", (data) => {
-      console.log(data);
-      if (data == "ola!") serverWithHandlers.emit("planning", "como vai?");
-    });
-  });
 };
 
 module.exports = { init };
