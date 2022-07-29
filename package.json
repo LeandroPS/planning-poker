@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "start-dev": "node -r dotenv/config index.js",
     "test": "jest"
   },
   "author": "@leandropsouza",
@@ -13,6 +14,7 @@
     "socket.io": "^4.5.0"
   },
   "devDependencies": {
+    "dotenv": "^16.0.1",
     "jest": "^28.1.0"
   }
 }
