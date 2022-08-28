@@ -12,7 +12,7 @@ const {
   UPDATE_STATE,
 } = require("../customEventTypes");
 
-const setSocketEventHandler = (io) => {
+const setSocketEventHandlers = (io) => {
   let state = initialRoomState;
 
   io.on("connection", (socket) => {
@@ -93,4 +93,4 @@ const setSocketEventHandler = (io) => {
   return io;
 };
 
-module.exports = { setSocketEventHandler };
+module.exports = { setSocketEventHandlers };

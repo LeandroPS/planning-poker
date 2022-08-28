@@ -1,4 +1,4 @@
-const { setSocketEventHandler } = require("./socketEventHandler.js");
+const { setSocketEventHandlers } = require("./socketEventHandlers.js");
 const {
   VOTE,
   JOIN,
@@ -54,7 +54,7 @@ const mockedIo = {
 
 describe("eventHandler()", () => {
   it("should emit an updtate to client state with team memeber added on JOIN", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: JOIN,
@@ -87,7 +87,7 @@ describe("eventHandler()", () => {
   });
 
   it("should emit an updtate to client state with voter added on VOTE", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: VOTE,
@@ -120,7 +120,7 @@ describe("eventHandler()", () => {
   });
 
   it("should emit an updtate to client state with empty votes on CLEAR_VOTES", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: CLEAR_VOTES,
@@ -140,7 +140,7 @@ describe("eventHandler()", () => {
   });
 
   it("should emit an updtate to client state with votes being shown on REVEAL_VOTES", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: REVEAL_VOTES,
@@ -160,7 +160,7 @@ describe("eventHandler()", () => {
   });
 
   it("should emit an updtate to client state with votes being hidden on HIDE_VOTES", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: HIDE_VOTES,
@@ -180,7 +180,7 @@ describe("eventHandler()", () => {
   });
 
   it("should emit an updtate to client state with team member being removed on LEAVE", () => {
-    const server = setSocketEventHandler(mockedIo);
+    const server = setSocketEventHandlers(mockedIo);
 
     const action = {
       type: LEAVE,
