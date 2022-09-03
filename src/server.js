@@ -2,7 +2,7 @@ const { setSocketEventHandlers } = require("./handlers/socketEventHandlers.js");
 const server = require("http").createServer();
 
 const corsAllowedOrigins = process.env.CORS_ALLOWED_ORIGIN;
-const port = 3000;
+const port = process.env.PORT;
 
 const io = require("socket.io")(server, {
   cors: corsAllowedOrigins?.split(","),
