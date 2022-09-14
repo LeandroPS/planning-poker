@@ -46,14 +46,14 @@ const mockedIo = {
     mockedHandlers[event] = callBack;
   }),
   trigger: jest.fn((event, params) => {
-    //const socketId = 'hj65fgy';
     mockedHandlers[event](params);
   }),
+  disconnect: jest.fn(),
   id: "hj65fgy",
 };
 
-describe("eventHandler()", () => {
-  it("should emit an updtate to client state with team memeber added on JOIN", () => {
+describe("setSocketEventHandlers()", () => {
+  it("should emit an update to client state with team memeber added on JOIN", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -86,7 +86,7 @@ describe("eventHandler()", () => {
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an updtate to client state with voter added on VOTE", () => {
+  it("should emit an update to client state with voter added on VOTE", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -119,7 +119,7 @@ describe("eventHandler()", () => {
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an updtate to client state with empty votes on CLEAR_VOTES", () => {
+  it("should emit an update to client state with empty votes on CLEAR_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -139,7 +139,7 @@ describe("eventHandler()", () => {
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an updtate to client state with votes being shown on REVEAL_VOTES", () => {
+  it("should emit an update to client state with votes being shown on REVEAL_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -159,7 +159,7 @@ describe("eventHandler()", () => {
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an updtate to client state with votes being hidden on HIDE_VOTES", () => {
+  it("should emit an update to client state with votes being hidden on HIDE_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -179,7 +179,7 @@ describe("eventHandler()", () => {
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an updtate to client state with team member being removed on LEAVE", () => {
+  it("should emit an update to client state with team member being removed when socket disconnects", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -205,5 +205,41 @@ describe("eventHandler()", () => {
 
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
     expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+  });
+
+  it("should emit an update to client state with team member being removed on LEAVE", () => {
+    const server = setSocketEventHandlers(mockedIo);
+
+    const action = {
+      type: LEAVE,
+      payload: {
+        socketId: "hj65fgy",
+      },
+    };
+
+    const modifiedState = {
+      ...mockedState,
+      team: [
+        {
+          socketId: "6y7hhh8j",
+          name: "maria",
+        },
+      ],
+    };
+
+    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+
+    server.trigger(LEAVE);
+
+    expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
+    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+  });
+
+  it("should disconnect socket on LEAVE", () => {
+    const server = setSocketEventHandlers(mockedIo);
+
+    server.trigger(LEAVE);
+
+    expect(server.disconnect).toHaveBeenCalled();
   });
 });

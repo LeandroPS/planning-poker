@@ -76,6 +76,21 @@ const setSocketEventHandlers = (io) => {
       io.emit(UPDATE_STATE, state);
     });
 
+    socket.on(LEAVE, () => {
+      const action = {
+        type: LEAVE,
+        payload: {
+          socketId,
+        },
+      };
+
+      socket.disconnect();
+
+      state = roomStateReducer(state, action);
+
+      io.emit(UPDATE_STATE, state);
+    });
+
     socket.on("disconnect", () => {
       const action = {
         type: LEAVE,
