@@ -39,11 +39,13 @@ const roomStateReducer = (state, action) => {
 
       return newRoomState;
     case LEAVE:
-      const index = newRoomState.team.findIndex(
+      const memberIndex = newRoomState.team.findIndex(
         (team_member) => team_member.socketId === socketId
       );
 
-      newRoomState.team.splice(index, 1);
+      newRoomState.team.splice(memberIndex, 1);
+
+      delete newRoomState.votes[socketId];
 
       return newRoomState;
 

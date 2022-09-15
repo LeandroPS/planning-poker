@@ -112,7 +112,11 @@ describe("RoomStateReducer", () => {
   });
 
   describe("Leave", () => {
-    it("should not list a left member", () => {
+    it("should remove a member from team list on a LEAVE action", () => {
+      const roomWithTeamMembersState = {
+        ...initialRoomState,
+        team: [{ socketId: "6y7hhh8j", name: "Mario" }],
+      };
       const action = {
         type: LEAVE,
         payload: {
@@ -120,13 +124,27 @@ describe("RoomStateReducer", () => {
         },
       };
 
-      const state = roomStateReducer(initialRoomState, action);
+      const state = roomStateReducer(roomWithTeamMembersState, action);
 
-      expect(state).not.toEqual(
-        expect.objectContaining({
-          team: { sokcetId: "6y7hhh8j", name: "Mario" },
-        })
-      );
+      expect(state.team).toStrictEqual([]);
+    });
+
+    it("should remove the vote of a left member on LEAVE action", () => {
+      const roomWithvoteState = {
+        ...initialRoomState,
+        team: [{ sokcetId: "6y7hhh8j", name: "Mario" }],
+        votes: { "6y7hhh8j": 2 },
+      };
+      const action = {
+        type: LEAVE,
+        payload: {
+          socketId: "6y7hhh8j",
+        },
+      };
+
+      const state = roomStateReducer(roomWithvoteState, action);
+
+      expect(state.votes).toStrictEqual({});
     });
   });
 
