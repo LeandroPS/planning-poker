@@ -9,9 +9,9 @@ const {
   UPDATE_STATE,
 } = require("../customEventTypes");
 const {
-  roomStateReducer,
-  initialRoomState,
-} = require("../reducers/roomStateReducer.js");
+  sessionStateReducer,
+  initialSessionState,
+} = require("../reducers/sessionStateReducer.js");
 
 const mockedState = {
   showVotes: false,
@@ -28,9 +28,9 @@ const mockedState = {
   ],
 };
 
-jest.mock("../reducers/roomStateReducer.js", () => ({
-  roomStateReducer: jest.fn(() => mockedState),
-  initialRoomState: {
+jest.mock("../reducers/sessionStateReducer.js", () => ({
+  sessionStateReducer: jest.fn(() => mockedState),
+  initialSessionState: {
     showVotes: false,
     votes: {},
     team: [],
@@ -39,21 +39,32 @@ jest.mock("../reducers/roomStateReducer.js", () => ({
 
 const mockedHandlers = {};
 
-const mockedIo = {
-  emit: jest.fn(),
-  on: jest.fn((event, callBack) => {
-    if (event === "connection") callBack(mockedIo);
-    mockedHandlers[event] = callBack;
-  }),
-  trigger: jest.fn((event, params) => {
-    mockedHandlers[event](params);
-  }),
-  disconnect: jest.fn(),
-  id: "hj65fgy",
-};
+let mockedIo;
+
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  mockedIo = {
+    emit: jest.fn(),
+    to: jest.fn(() => mockedIo),
+    on: jest.fn((event, callBack) => {
+      if (event === "connection") callBack(mockedIo);
+      mockedHandlers[event] = callBack;
+    }),
+    trigger: jest.fn((event, params) => {
+      mockedHandlers[event](params);
+    }),
+    join: jest.fn(),
+    disconnect: jest.fn(),
+    id: "hj65fgy",
+    rooms: ["hj65fgy", "hji-jih-pot"],
+    leave: jest.fn(),
+    onAny: jest.fn(),
+  };
+});
 
 describe("setSocketEventHandlers()", () => {
-  it("should emit an update to client state with team memeber added on JOIN", () => {
+  it("should emit a state update to session with a team member added on JOIN", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -78,15 +89,18 @@ describe("setSocketEventHandlers()", () => {
       ],
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
-    server.trigger(JOIN, { name: "jonas" });
+    server.trigger(JOIN, { name: "jonas", sessionId: "hji-jih-pot" });
 
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an update to client state with voter added on VOTE", () => {
+  it("should emit a state update to session with a vote added on VOTE", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -99,27 +113,21 @@ describe("setSocketEventHandlers()", () => {
 
     const modifiedState = {
       ...mockedState,
-      votes: [
-        {
-          socketId: "hj65fgy",
-          value: 2,
-        },
-        {
-          socketId: "6y7hhh8j",
-          value: 2,
-        },
-      ],
+      votes: { hj65fgy: "2", "6y7hhh8j": "2" },
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger(VOTE, { value: 2 });
 
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an update to client state with empty votes on CLEAR_VOTES", () => {
+  it("should emit a state update to session with votes emptied on CLEAR_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -131,15 +139,18 @@ describe("setSocketEventHandlers()", () => {
       votes: {},
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger(CLEAR_VOTES);
 
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an update to client state with votes being shown on REVEAL_VOTES", () => {
+  it("should emit a state update to session with votes being shown on REVEAL_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -151,15 +162,18 @@ describe("setSocketEventHandlers()", () => {
       showVotes: true,
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger(REVEAL_VOTES);
 
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an update to client state with votes being hidden on HIDE_VOTES", () => {
+  it("should emit a state update to session state with votes being hidden on HIDE_VOTES", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -171,15 +185,18 @@ describe("setSocketEventHandlers()", () => {
       showVotes: false,
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger(HIDE_VOTES);
 
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
   });
 
-  it("should emit an update to client state with team member being removed when socket disconnects", () => {
+  it("should emit a state update to session with a team member being removed when socket disconnects", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -199,15 +216,18 @@ describe("setSocketEventHandlers()", () => {
       ],
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger("disconnect");
 
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
   });
 
-  it("should emit an update to client state with team member being removed on LEAVE", () => {
+  it("should emit a state update to session with a team member being removed on LEAVE", () => {
     const server = setSocketEventHandlers(mockedIo);
 
     const action = {
@@ -227,12 +247,15 @@ describe("setSocketEventHandlers()", () => {
       ],
     };
 
-    roomStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
+    sessionStateReducer.mockImplementationOnce(jest.fn(() => modifiedState));
 
     server.trigger(LEAVE);
 
+    expect(sessionStateReducer).toHaveBeenCalledWith(
+      initialSessionState,
+      action
+    );
     expect(server.emit).toHaveBeenCalledWith(UPDATE_STATE, modifiedState);
-    expect(roomStateReducer).toHaveBeenCalledWith(initialRoomState, action);
   });
 
   it("should disconnect socket on LEAVE", () => {

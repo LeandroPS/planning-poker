@@ -6,15 +6,19 @@ const {
   REVEAL_VOTES,
   HIDE_VOTES,
 } = require("../customEventTypes");
-const { roomStateReducer } = require("./roomStateReducer");
+const { sessionStateReducer } = require("./sessionStateReducer");
 
-const initialRoomState = {
+const initialSessionState = {
   showVotes: false,
   votes: {},
   team: [],
 };
 
-describe("RoomStateReducer", () => {
+afterAll(() => {
+  jest.clearAllMocks();
+});
+
+describe("SessionStateReducer", () => {
   describe("Vote", () => {
     it("should add a vote", () => {
       const action = {
@@ -25,7 +29,7 @@ describe("RoomStateReducer", () => {
         },
       };
 
-      const state = roomStateReducer(initialRoomState, action);
+      const state = sessionStateReducer(initialSessionState, action);
 
       expect(state).toEqual(
         expect.objectContaining({ votes: { "6y7hhh8j": "4" } })
@@ -42,7 +46,7 @@ describe("RoomStateReducer", () => {
       };
 
       const initialStateWithVotesAndTeam = {
-        ...initialRoomState,
+        ...initialSessionState,
         votes: { hj65fgy: "2" },
         team: [
           {
@@ -56,7 +60,7 @@ describe("RoomStateReducer", () => {
         ],
       };
 
-      const state = roomStateReducer(initialStateWithVotesAndTeam, action);
+      const state = sessionStateReducer(initialStateWithVotesAndTeam, action);
 
       expect(state).toEqual(expect.objectContaining({ showVotes: true }));
     });
@@ -71,7 +75,7 @@ describe("RoomStateReducer", () => {
       };
 
       const initialStateWithATeam = {
-        ...initialRoomState,
+        ...initialSessionState,
         team: [
           {
             socketId: "hj65fgy",
@@ -84,7 +88,7 @@ describe("RoomStateReducer", () => {
         ],
       };
 
-      const state = roomStateReducer(initialStateWithATeam, action);
+      const state = sessionStateReducer(initialStateWithATeam, action);
 
       expect(state).toEqual(expect.objectContaining({ showVotes: false }));
     });
@@ -100,7 +104,7 @@ describe("RoomStateReducer", () => {
         },
       };
 
-      const state = roomStateReducer(initialRoomState, action);
+      const state = sessionStateReducer(initialSessionState, action);
 
       expect(state.team).toStrictEqual([
         {
@@ -114,7 +118,7 @@ describe("RoomStateReducer", () => {
   describe("Leave", () => {
     it("should remove a member from team list on a LEAVE action", () => {
       const roomWithTeamMembersState = {
-        ...initialRoomState,
+        ...initialSessionState,
         team: [{ socketId: "6y7hhh8j", name: "Mario" }],
       };
       const action = {
@@ -124,14 +128,14 @@ describe("RoomStateReducer", () => {
         },
       };
 
-      const state = roomStateReducer(roomWithTeamMembersState, action);
+      const state = sessionStateReducer(roomWithTeamMembersState, action);
 
       expect(state.team).toStrictEqual([]);
     });
 
     it("should remove the vote of a left member on LEAVE action", () => {
       const roomWithvoteState = {
-        ...initialRoomState,
+        ...initialSessionState,
         team: [{ sokcetId: "6y7hhh8j", name: "Mario" }],
         votes: { "6y7hhh8j": 2 },
       };
@@ -142,7 +146,7 @@ describe("RoomStateReducer", () => {
         },
       };
 
-      const state = roomStateReducer(roomWithvoteState, action);
+      const state = sessionStateReducer(roomWithvoteState, action);
 
       expect(state.votes).toStrictEqual({});
     });
@@ -155,11 +159,11 @@ describe("RoomStateReducer", () => {
       };
 
       const initialStateWithVotes = {
-        ...initialRoomState,
+        ...initialSessionState,
         votes: { "6y7hhh8j": "4" },
       };
 
-      const state = roomStateReducer(initialStateWithVotes, action);
+      const state = sessionStateReducer(initialStateWithVotes, action);
 
       expect(state).toEqual(expect.objectContaining({ votes: {} }));
     });
@@ -172,11 +176,11 @@ describe("RoomStateReducer", () => {
       };
 
       const initialStateWithVotes = {
-        ...initialRoomState,
+        ...initialSessionState,
         votes: { "6y7hhh8j": "4" },
       };
 
-      const state = roomStateReducer(initialStateWithVotes, action);
+      const state = sessionStateReducer(initialStateWithVotes, action);
 
       expect(state).toEqual(expect.objectContaining({ showVotes: true }));
     });
@@ -189,12 +193,12 @@ describe("RoomStateReducer", () => {
       };
 
       const initialStateWithVotes = {
-        ...initialRoomState,
+        ...initialSessionState,
         showVotes: true,
         votes: { "6y7hhh8j": "4" },
       };
 
-      const state = roomStateReducer(initialStateWithVotes, action);
+      const state = sessionStateReducer(initialStateWithVotes, action);
 
       expect(state).toEqual(expect.objectContaining({ showVotes: false }));
     });

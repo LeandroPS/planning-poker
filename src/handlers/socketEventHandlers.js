@@ -1,7 +1,7 @@
 const {
-  roomStateReducer,
-  initialRoomState,
-} = require("../reducers/roomStateReducer.js");
+  sessionStateReducer,
+  initialSessionState,
+} = require("../reducers/sessionStateReducer.js");
 const {
   VOTE,
   JOIN,
@@ -13,12 +13,21 @@ const {
 } = require("../customEventTypes");
 
 const setSocketEventHandlers = (io) => {
-  let state = initialRoomState;
+  const sessions = {};
 
   io.on("connection", (socket) => {
-    const { id: socketId } = socket;
+    const { id: socketId, rooms } = socket;
 
-    socket.on(JOIN, ({ name }) => {
+    const getSessionId = () => {
+      const [, sessionId] = socket.rooms.values();
+
+      return sessionId;
+    };
+
+    const getCurrentSessionState = () =>
+      sessions[getSessionId()] || initialSessionState;
+
+    socket.on(JOIN, ({ name, sessionId }) => {
       const action = {
         type: JOIN,
         payload: {
@@ -27,9 +36,15 @@ const setSocketEventHandlers = (io) => {
         },
       };
 
-      state = roomStateReducer(state, action);
+      socket.join(sessionId);
 
-      io.emit(UPDATE_STATE, state);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
+
+      io.to(sessionId).emit(UPDATE_STATE, sessions[sessionId]);
     });
 
     socket.on(VOTE, (vote) => {
@@ -41,9 +56,13 @@ const setSocketEventHandlers = (io) => {
         },
       };
 
-      state = roomStateReducer(state, action);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
 
-      io.emit(UPDATE_STATE, state);
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
     });
 
     socket.on(CLEAR_VOTES, () => {
@@ -51,9 +70,13 @@ const setSocketEventHandlers = (io) => {
         type: CLEAR_VOTES,
       };
 
-      state = roomStateReducer(state, action);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
 
-      io.emit(UPDATE_STATE, state);
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
     });
 
     socket.on(REVEAL_VOTES, () => {
@@ -61,9 +84,13 @@ const setSocketEventHandlers = (io) => {
         type: REVEAL_VOTES,
       };
 
-      state = roomStateReducer(state, action);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
 
-      io.emit(UPDATE_STATE, state);
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
     });
 
     socket.on(HIDE_VOTES, () => {
@@ -71,9 +98,13 @@ const setSocketEventHandlers = (io) => {
         type: HIDE_VOTES,
       };
 
-      state = roomStateReducer(state, action);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
 
-      io.emit(UPDATE_STATE, state);
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
     });
 
     socket.on(LEAVE, () => {
@@ -84,11 +115,16 @@ const setSocketEventHandlers = (io) => {
         },
       };
 
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
+
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
+
+      socket.leave(getSessionId());
       socket.disconnect();
-
-      state = roomStateReducer(state, action);
-
-      io.emit(UPDATE_STATE, state);
     });
 
     socket.on("disconnect", () => {
@@ -99,9 +135,13 @@ const setSocketEventHandlers = (io) => {
         },
       };
 
-      state = roomStateReducer(state, action);
+      const currentSessionState = getCurrentSessionState();
+      sessions[getSessionId()] = sessionStateReducer(
+        currentSessionState,
+        action
+      );
 
-      io.emit(UPDATE_STATE, state);
+      io.to(getSessionId()).emit(UPDATE_STATE, sessions[getSessionId()]);
     });
   });
 
